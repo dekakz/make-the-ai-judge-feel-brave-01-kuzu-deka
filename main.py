@@ -30,19 +30,28 @@ TEXT = (
 )
 
 
-def main() -> None:
-    text = TEXT
-    # The gate: 1 to 280 characters, counted as Unicode code points,
-    # and not only white space. Fail loudly rather than write a text
-    # the gate would refuse.
+def validate(text: str) -> int:
+    """Return the text's length in Unicode code points, or fail loudly.
+
+    The gate refuses anything outside 1..280 characters, or text that is
+    only white space, so refuse it here instead of writing a file the
+    gate would reject.
+    """
     size = len(text)
     if not 1 <= size <= 280:
         raise SystemExit(f"text is {size} characters, outside 1..280")
     if not text.strip():
         raise SystemExit("text is only white space")
+    text.encode("utf-8")  # the gate reads UTF-8; fail here, not there
+    return size
+
+
+def main() -> None:
+    size = validate(TEXT)
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "w", encoding="utf-8") as f:
-        f.write(text)
+        f.write(TEXT)
+    print(f"wrote /output/entry.txt ({size} characters)")
 
 
 if __name__ == "__main__":
